@@ -1,7 +1,7 @@
-import { app, session } from 'electron'
+import { app, net, session } from 'electron'
 import { ChildProcess, spawn } from 'child_process'
 import { createServer } from 'net'
-import { existsSync, mkdirSync } from 'fs'
+import { appendFileSync, existsSync, mkdirSync } from 'fs'
 import path from 'path'
 
 export type TorStatus = 'OFF' | 'STARTING' | 'ON' | 'STOPPING' | 'FETCHING_WEBTUNNEL' | 'STARTING_WEBTUNNEL' | 'WEBTUNNEL_ERROR'
@@ -23,6 +23,7 @@ interface BridgeStore {
 
 const DIRECT_TIMEOUT_MS = 20_000
 const WEBTUNNEL_TIMEOUT_MS = 60_000
+const MAX_WEBTUNNEL_BRIDGES = 5
 const MOAT_URL = 'https://bridges.torproject.org/moat/circumvention/settings'
 const BRIDGE_CACHE_KEY = 'torWebTunnelBridge'
 
@@ -32,6 +33,8 @@ export class EmbeddedTorManager {
   private timer: NodeJS.Timeout | null = null
   private generation = 0
   private stopping = false
+  private logBuffer = ''
+  private webTunnelQueue: string[] = []
   private state: TorState = {
     status: 'OFF', host: '127.0.0.1', port: 0, ready: false, transport: 'direct', bootstrap: 0,
   }
@@ -51,6 +54,7 @@ export class EmbeddedTorManager {
       return this.getState()
     }
     this.stopping = false
+    this.webTunnelQueue = []
     await this.launch('direct')
     return this.getState()
   }
@@ -81,11 +85,14 @@ export class EmbeddedTorManager {
 
   private async launch(transport: 'direct' | 'webtunnel', bridge?: string): Promise<void> {
     this.clearTimer()
-    await this.stopChild()
+    // Invalidate callbacks from the current child before terminating it.
     const generation = ++this.generation
+    await this.stopChild()
     const port = await this.reservePort()
     const root = this.runtimeRoot()
-    const torBinary = path.join(root, 'tor', this.binaryName('tor'))
+    const torDirectory = path.join(root, 'tor')
+    const torBinary = path.join(torDirectory, this.binaryName('tor'))
+    const lyrebirdBinary = path.join('pluggable_transports', this.binaryName('lyrebird'))
     const dataDirectory = path.join(app.getPath('userData'), 'tor', transport)
     mkdirSync(dataDirectory, { recursive: true })
 
@@ -102,7 +109,10 @@ export class EmbeddedTorManager {
     if (transport === 'webtunnel' && bridge) {
       args.push(
         '--UseBridges', '1',
-        '--ClientTransportPlugin', `webtunnel exec ${path.join(root, 'tor', 'pluggable_transports', this.binaryName('lyrebird'))}`,
+        // Tor's configuration parser does not reliably preserve quotes around
+        // Windows paths. Run Tor from its own directory and use a space-free
+        // relative path for the managed transport executable instead.
+        '--ClientTransportPlugin', `webtunnel exec ${lyrebirdBinary}`,
         '--Bridge', bridge,
       )
     }
@@ -111,9 +121,13 @@ export class EmbeddedTorManager {
       status: transport === 'direct' ? 'STARTING' : 'STARTING_WEBTUNNEL',
       host: '127.0.0.1', port, ready: false, transport, bootstrap: 0,
     }
+    this.logBuffer = ''
     this.publish()
 
-    const child = spawn(torBinary, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+    const child = spawn(torBinary, args, {
+      cwd: torDirectory,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
     this.child = child
     const consume = (chunk: Buffer) => this.consumeLog(chunk.toString(), generation)
     child.stdout?.on('data', consume)
@@ -127,18 +141,25 @@ export class EmbeddedTorManager {
     this.timer = setTimeout(() => {
       if (generation !== this.generation || this.state.ready) return
       if (transport === 'direct') void this.startWebTunnelFallback()
-      else this.fail(new Error('WebTunnel connection timed out'), generation)
+      else void this.tryNextWebTunnel(generation)
     }, transport === 'direct' ? DIRECT_TIMEOUT_MS : WEBTUNNEL_TIMEOUT_MS)
   }
 
   private consumeLog(text: string, generation: number): void {
     if (generation !== this.generation) return
-    for (const line of text.split(/\r?\n/)) {
+    this.writeLog(text)
+    const lines = `${this.logBuffer}${text}`.split(/\r?\n/)
+    this.logBuffer = lines.pop() ?? ''
+    for (const line of lines) {
       const match = line.match(/Bootstrapped\s+(\d+)%/)
       if (match) {
         const bootstrap = Number(match[1])
         this.update({ bootstrap })
         if (bootstrap === 100) void this.markReady(generation)
+      }
+      if (this.state.transport === 'webtunnel' && /(?:Managed proxy|Pluggable Transport).*(?:failed|terminated)|Could not launch managed proxy/i.test(line)) {
+        this.fail(new Error(`lyrebird failed: ${line.trim()}`), generation)
+        return
       }
       if (/\[err\]|Problem bootstrapping|Unable to find IPv4 address/i.test(line)) console.warn('[Tor]', line)
     }
@@ -161,27 +182,32 @@ export class EmbeddedTorManager {
     this.clearTimer()
     await this.stopChild()
     this.update({ status: 'FETCHING_WEBTUNNEL', ready: false, transport: 'webtunnel', bootstrap: 0, error: undefined })
-    let bridge: string | null = null
+    let bridges: string[] = []
     try {
-      bridge = await this.fetchLatestWebTunnel()
-      this.store.set(BRIDGE_CACHE_KEY, bridge)
+      bridges = await this.fetchLatestWebTunnels()
+      this.store.set(BRIDGE_CACHE_KEY, bridges)
     } catch (error) {
       console.warn('[Tor] Moat fetch failed, trying cached WebTunnel bridge:', error)
-      bridge = this.validBridge(this.store.get(BRIDGE_CACHE_KEY))
+      bridges = this.validBridges(this.store.get(BRIDGE_CACHE_KEY))
     }
     if (fallbackGeneration !== this.generation) return
-    if (!bridge) {
+    if (bridges.length === 0) {
       this.fail(new Error('Tor Project Moat did not return a valid WebTunnel bridge'), fallbackGeneration)
       return
     }
+    const [bridge, ...remaining] = bridges
+    this.webTunnelQueue = remaining
     await this.launch('webtunnel', bridge)
   }
 
-  private async fetchLatestWebTunnel(): Promise<string> {
+  private async fetchLatestWebTunnels(): Promise<string[]> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 15_000)
     try {
-      const response = await fetch(MOAT_URL, {
+      // Electron's network stack honors defaultSession proxy settings. The
+      // Node.js global fetch bypasses them, which prevents Moat access on
+      // networks where the user configured an HTTP/SOCKS proxy in the app.
+      const response = await net.fetch(MOAT_URL, {
         method: 'POST',
         headers: {
           'content-type': 'application/vnd.api+json',
@@ -193,14 +219,17 @@ export class EmbeddedTorManager {
       })
       if (!response.ok) throw new Error(`Moat returned HTTP ${response.status}`)
       const payload = await response.json() as { settings?: Array<{ bridges?: { type?: string; bridge_strings?: string[] } }> }
+      const bridges: string[] = []
       for (const item of payload.settings ?? []) {
         if (item.bridges?.type !== 'webtunnel') continue
         for (const candidate of item.bridges.bridge_strings ?? []) {
           const bridge = this.validBridge(candidate)
-          if (bridge) return bridge
+          if (bridge && !bridges.includes(bridge)) bridges.push(bridge)
+          if (bridges.length >= MAX_WEBTUNNEL_BRIDGES) return bridges
         }
       }
-      throw new Error('No WebTunnel bridge returned')
+      if (bridges.length === 0) throw new Error('No WebTunnel bridge returned')
+      return bridges
     } finally {
       clearTimeout(timeout)
     }
@@ -213,11 +242,45 @@ export class EmbeddedTorManager {
     return /\sutls=/.test(value) ? value : `${value} utls=none`
   }
 
+  private validBridges(input: unknown): string[] {
+    const candidates = Array.isArray(input) ? input : [input]
+    return candidates
+      .map(candidate => this.validBridge(candidate))
+      .filter((bridge): bridge is string => Boolean(bridge))
+      .slice(0, MAX_WEBTUNNEL_BRIDGES)
+  }
+
+  private async tryNextWebTunnel(generation: number): Promise<void> {
+    if (generation !== this.generation) return
+    const bridge = this.webTunnelQueue.shift()
+    if (!bridge) {
+      this.fail(new Error('All available WebTunnel bridges timed out'), generation)
+      return
+    }
+    this.writeLog(`WebTunnel timed out; trying another bridge (${this.webTunnelQueue.length + 1} remaining)\n`)
+    await this.launch('webtunnel', bridge)
+  }
+
+  private writeLog(text: string): void {
+    try {
+      const logDirectory = path.join(app.getPath('userData'), 'logs')
+      mkdirSync(logDirectory, { recursive: true })
+      appendFileSync(
+        path.join(logDirectory, 'tor.log'),
+        `[${new Date().toISOString()}] ${text}`,
+        { encoding: 'utf8' },
+      )
+    } catch (error) {
+      console.warn('[Tor] Unable to write diagnostic log:', error)
+    }
+  }
+
   private fail(error: Error, generation: number): void {
     if (generation !== this.generation) return
     this.generation += 1
     this.clearTimer()
     console.error('[Tor]', error)
+    this.writeLog(`ERROR: ${error.message}\n`)
     this.update({ status: 'WEBTUNNEL_ERROR', ready: false, error: error.message })
     void this.stopChild()
   }

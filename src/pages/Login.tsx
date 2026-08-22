@@ -378,7 +378,7 @@ export default function Login() {
                     : torState.status === 'STARTING_WEBTUNNEL'
                       ? t('tor.starting_webtunnel')
                       : torState.status === 'WEBTUNNEL_ERROR'
-                        ? t('tor.webtunnel_failed')
+                        ? `${t('tor.webtunnel_failed')}${torState.error ? ` (${torState.error})` : ''}`
                         : t('tor.required_notice')}</span>
               </div>
               <button

@@ -235,6 +235,9 @@ function createWindow(): void {
 app.whenReady().then(async () => {
   setupIPC()
   createWindow()
+  // Restore the user's configured proxy before Tor's direct attempt falls
+  // back to Moat. net.fetch() then uses this defaultSession configuration.
+  await restoreProxy()
   void embeddedTor.start().catch(error => console.error('[Tor] Automatic startup failed:', error))
 
   app.on('activate', () => {
