@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, useCallback, ReactNode } from 'react'
 import { useStore } from '../store'
 import { useI18n } from '../hooks/useI18n'
-import { get, post, put, uploadFileWithProgress, normalizeFileUrl } from '../api/http'
+import { get, post, put, uploadFileWithProgress, normalizeFileUrl, downloadFileFromServer } from '../api/http'
 import { sendWs, onWs } from '../api/socket'
 import { getKeys } from '../crypto/keystore'
 import { encryptHybrid, decryptHybrid, inspectHybridProtocol } from '../crypto/ratchet'
-import { getPresentationSettings, protectPresentationText, unprotectPresentationText } from '../crypto/presentationCrypto'
+import { isPresentationUnlocked, protectPresentationText, unprotectPresentationText } from '../crypto/presentationCrypto'
 import { getMySenderKey, getSenderKey, generateSenderKey, encryptWithSenderKey, decryptWithSenderKey, distributeSenderKey, storeSenderKey, receiveSenderKey, isSenderKeyDistributed, markSenderKeyDistributed, removeSenderKey } from '../crypto/groupCrypto'
 import { Shield } from 'lucide-react'
 import { ChevronLeft, ChevronDown, Lock, Settings, Timer, ImageIcon, Film, Plus, Mic, Download, Paperclip, AlertTriangle, Clock, Package as PackageIcon, FileText, File as FileIcon, Image as LucideImage, Music, Video, Check, CheckCheck, SendHorizonal, Smile, WifiOff, X, ZoomIn, ZoomOut } from 'lucide-react'
@@ -352,6 +352,7 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
   // Upload progress
   const [uploadProgress, setUploadProgress] = useState(-1) // -1 = hidden
   const [uploadLabel, setUploadLabel] = useState('')
+  const [savingAttachmentUrl, setSavingAttachmentUrl] = useState<string | null>(null)
   // Voice recording
   const [isRecording, setIsRecording] = useState(false)
   const [recordDuration, setRecordDuration] = useState(0)
@@ -366,6 +367,9 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
   const imageInputRef = useRef<HTMLInputElement>(null)
   const videoInputRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const sendingRef = useRef(false)
+  const fileUploadRef = useRef(false)
+  const attachmentSaveRef = useRef(false)
   const mediaRecRef = useRef<MediaRecorder | null>(null)
   const recChunksRef = useRef<Blob[]>([])
   const recStartRef = useRef<number>(0)
@@ -597,10 +601,12 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
           try {
             const isMe = msg.from === user?.id
             if (isMe && msg.self_ciphertext && msg.self_header) {
-              const text = await decryptHybrid(msg.self_header, keys?.ik_priv || '', null, msg.self_ciphertext)
+              const decrypted = await decryptHybrid(msg.self_header, keys?.ik_priv || '', null, msg.self_ciphertext)
+              const text = await unprotectPresentationText(decrypted)
               return { ...msg, decrypted: text }
             } else if (!isMe && msg.ciphertext && msg.header) {
-              const text = await decryptHybrid(msg.header, keys?.ik_priv || '', null, msg.ciphertext)
+              const decrypted = await decryptHybrid(msg.header, keys?.ik_priv || '', null, msg.ciphertext)
+              const text = await unprotectPresentationText(decrypted)
               return { ...msg, decrypted: text }
             }
           } catch {}
@@ -613,7 +619,8 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
             try {
               const sk = getSenderKey(id!, msg.from)
               if (sk) {
-                const text = await decryptWithSenderKey(msg.ciphertext, msg.nonce, sk.senderKey)
+                const decrypted = await decryptWithSenderKey(msg.ciphertext, msg.nonce, sk.senderKey)
+                const text = await unprotectPresentationText(decrypted)
                 return { ...msg, decrypted: text }
               }
             } catch (err) {
@@ -693,7 +700,8 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
   const sendMessage = async (text?: string, msgType = 'text', _extra: any = {}) => {
     const content = text || input.trim()
     if (msgType === 'text' && !content) return
-    if (!id || !user || sending) return
+    if (!id || !user || sendingRef.current) return
+    sendingRef.current = true
     const reply = replyingTo
     const displayWireContent = encodeMessagePayload(content, reply)
     const clientMsgId = crypto.randomUUID()
@@ -712,7 +720,7 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
         delivery_status: 'queued',
         from: user.id,
         msg_type: msgType,
-        decrypted: getPresentationSettings().enabled ? wireContent : displayWireContent,
+        decrypted: isPresentationUnlocked() ? displayWireContent : wireContent,
         ciphertext: (isGroup && !group?.encrypted) ? wireContent : '',
       }
       if (isGroup) {
@@ -852,6 +860,7 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
       if (msgType === 'text' && content) setInput(content)
       alert(t('chat.encryption_send_failed') || 'Encryption failed. The message was not sent.')
     } finally {
+      sendingRef.current = false
       setSending(false)
     }
   }
@@ -896,15 +905,19 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
     e.target.value = ''
+    if (!file) return
+    if (fileUploadRef.current) return
+    fileUploadRef.current = true
     setShowAttachPanel(false)
     try {
       const { url } = await uploadWithProgress(file, t('chat.uploading_file'))
       const meta = JSON.stringify({ url, fileName: file.name, fileSize: file.size, fileType: file.type })
-      sendMessage(meta, 'file', { url, fileName: file.name, fileSize: file.size, fileType: file.type })
+      await sendMessage(meta, 'file', { url, fileName: file.name, fileSize: file.size, fileType: file.type })
     } catch {
       alert(t('chat.upload_failed'))
+    } finally {
+      fileUploadRef.current = false
     }
   }
 
@@ -1151,6 +1164,31 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
     } catch { return null }
   }
 
+  const saveAttachment = async (url: string, requestedName?: string) => {
+    if (attachmentSaveRef.current) return
+    attachmentSaveRef.current = true
+    setSavingAttachmentUrl(url)
+    try {
+      const blob = await downloadFileFromServer(url)
+      const fileName = (requestedName || 'attachment').replace(/[\\/:*?"<>|]/g, '_')
+      const objectUrl = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = objectUrl
+      anchor.download = fileName
+      anchor.style.display = 'none'
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000)
+    } catch (error) {
+      console.error('[Chat] attachment download failed:', error)
+      alert(t('chat.download_failed'))
+    } finally {
+      attachmentSaveRef.current = false
+      setSavingAttachmentUrl(null)
+    }
+  }
+
   // ── Render message bubble content ──
   const renderBubble = (msg: any, displayText: string, isEncFailed: boolean) => {
     if (isEncFailed) {
@@ -1197,10 +1235,11 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
       if (meta) {
         const icon = getFileIcon(meta.fileType || '')
         return (
-          <a href={normalizeFileUrl(meta.url)} target="_blank" rel="noopener noreferrer"
+          <button type="button" disabled={savingAttachmentUrl === meta.url} onClick={() => void saveAttachment(meta.url, meta.fileName)}
             style={{
               display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit',
               padding: 8, borderRadius: 8, background: 'rgba(0,0,0,0.05)', minWidth: 180,
+              border: 'none', width: '100%', cursor: 'pointer', textAlign: 'left',
             }}>
             <span style={{ fontSize: 28 }}>{icon}</span>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -1209,11 +1248,11 @@ export default function Chat({ chatId, isGroup }: { chatId: string; isGroup: boo
               </div>
               {meta.fileSize && <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatFileSize(meta.fileSize)}</div>}
             </div>
-            <span style={{ fontSize: 18, color: 'var(--accent)' }}><Download size={18} /></span>
-          </a>
+            <span style={{ fontSize: 18, color: 'var(--accent)' }}>{savingAttachmentUrl === meta.url ? <Clock size={18} /> : <Download size={18} />}</span>
+          </button>
         )
       }
-      return <a href={normalizeFileUrl(displayText)} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 4 }}><Paperclip size={14} /> {t('chat.file')}</a>
+      return <button type="button" onClick={() => void saveAttachment(displayText)} style={{ color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: 4, border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}><Paperclip size={14} /> {t('chat.file')}</button>
     }
     return displayText
   }

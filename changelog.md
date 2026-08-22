@@ -1,5 +1,49 @@
 # Changelog / 更新日志
 
+## 3.0.17
+
+- Fixed end-to-end message decryption behavior when text appearance is unlocked so messages sent or received after unlock display plaintext instead of appearance ciphertext.
+- Ensured text-appearance unprotect runs on all Windows message decryption paths (live, history, and retry).
+- Updated all Windows release artifact filenames and footer version displays to `3.0.17`.
+
+- 修复文本外观已解锁状态下的解密问题：解锁后发送或接收消息可正常显示明文，不再停留在外观密文。
+- 确保 Windows 桌面端在实时、历史与重试消息解密流程中都执行文本外观反解码。
+- 将 Windows 发布包文件名和页面底部版本显示统一更新为 `3.0.17`。
+
+## 3.0.16
+
+- Synchronized the shared encryption and recovery fixes from PaperPhoneLite iOS 3.0.16.
+- Aligned the private-message v2 hybrid KDF context with Android and iOS for cross-platform decryption.
+- Applied text-appearance decryption after private-chat and Sender Key decryption for live, history, and retried messages.
+- Restored the text-appearance password prompt for persisted sessions without persisting the password.
+- Reconciles the server identity public key with the Windows secure-storage-protected private key after startup and network recovery.
+- Updated the Windows application version to `3.0.16`.
+
+- 同步 PaperPhoneLite iOS 3.0.16 的共享加密与网络恢复修复。
+- 对齐 Android、iOS 的私聊 v2 混合加密 KDF 上下文，恢复跨平台消息解密。
+- 实时消息、历史消息和重试消息在私聊 E2EE／群聊 Sender Key 解密后继续解密文本外观层。
+- 已登录会话启动时恢复文本外观密码提示，且仍不持久保存密码。
+- 启动及网络恢复后，自动校准服务器身份公钥与 Windows 安全存储保护的本地私钥。
+- Windows 应用版本更新为 `3.0.16`。
+
+## 3.0.13
+
+- Synchronized shared chat reliability updates: synchronous guards prevent duplicate sends, uploads, and attachment saves.
+- File messages show progress and disable the active download button while authenticated attachments are prepared.
+
+- 同步聊天可靠性更新：使用同步操作锁防止重复发送、上传与保存附件。
+- 鉴权附件准备期间显示处理状态并禁用当前下载按钮。
+
+## 3.0.12
+
+- Added authenticated same-origin attachment downloads with one automatic access-token refresh and retry.
+- File messages now download through the configured server instead of opening onion URLs in the system browser.
+- Added localized download-failure messages.
+
+- 新增同源附件鉴权下载，访问令牌过期时自动刷新一次并重试。
+- 文件消息改为通过当前服务器下载，不再将 onion 地址交给系统浏览器。
+- 补充多语言下载失败提示。
+
 ## 3.0.8
 
 - Embedded the official Tor Project Windows x86_64 Tor and lyrebird runtime.

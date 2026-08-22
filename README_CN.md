@@ -5,7 +5,7 @@
 
   <p>
     <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows" alt="Platform" />
-    <img src="https://img.shields.io/badge/Version-3.0.8-green?style=flat-square" alt="Version" />
+    <img src="https://img.shields.io/badge/Version-3.0.17-green?style=flat-square" alt="Version" />
     <img src="https://img.shields.io/badge/Electron-36-47848F?style=flat-square&logo=electron" alt="Electron" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React" />
     <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
@@ -77,8 +77,8 @@ PaperPhoneLite Desktop 是 [PaperPhoneLite](https://github.com/619dev/PaperPhone
 
 | 文件 | 说明 |
 |------|------|
-| `PaperPhoneLite-3.0.8-Windows-Setup.exe` | 推荐：NSIS 安装包 |
-| `PaperPhoneLite-3.0.8-Windows-Portable.exe` | 免安装便携版 |
+| `PaperPhoneLite-3.0.17-Windows-Setup.exe` | 推荐：NSIS 安装包 |
+| `PaperPhoneLite-3.0.17-Windows-Portable.exe` | 免安装便携版 |
 
 当前安装包支持 64 位 Windows。首次启动时 Windows Defender 防火墙可能询问是否允许内嵌 Tor 访问网络，请按实际网络环境授权。
 
