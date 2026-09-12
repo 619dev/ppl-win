@@ -1,5 +1,15 @@
 # Changelog / 更新日志
 
+## 3.0.21
+
+- Resolved relative avatar paths against the configured messaging server across nested API responses and group-message rendering.
+- Marked user and group avatar uploads as permanent while keeping ordinary chat attachments temporary.
+- Updated the Windows application version and release documentation to `3.0.21`.
+
+- 对 API 响应中的嵌套头像路径及群消息头像进行统一处理，确保相对路径指向当前配置的消息服务器。
+- 用户头像和群头像上传标记为永久文件，普通聊天附件继续标记为临时文件。
+- Windows 应用版本和发布文档更新为 `3.0.21`。
+
 ## 3.0.17
 
 - Fixed end-to-end message decryption behavior when text appearance is unlocked so messages sent or received after unlock display plaintext instead of appearance ciphertext.

@@ -5,7 +5,7 @@
 
   <p>
     <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows" alt="Platform" />
-    <img src="https://img.shields.io/badge/Version-3.0.17-green?style=flat-square" alt="Version" />
+    <img src="https://img.shields.io/badge/Version-3.0.21-green?style=flat-square" alt="Version" />
     <img src="https://img.shields.io/badge/Electron-36-47848F?style=flat-square&logo=electron" alt="Electron" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React" />
     <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
@@ -77,8 +77,8 @@ Go to the [Releases](../../releases) page and download the installer:
 
 | File | Description |
 |------|-------------|
-| `PaperPhoneLite-3.0.17-Windows-Setup.exe` | Recommended NSIS installer |
-| `PaperPhoneLite-3.0.17-Windows-Portable.exe` | Portable package |
+| `PaperPhoneLite-3.0.21-Windows-Setup.exe` | Recommended NSIS installer |
+| `PaperPhoneLite-3.0.21-Windows-Portable.exe` | Portable package |
 
 The current packages support 64-bit Windows. Windows Defender Firewall may ask for permission when embedded Tor first connects; allow it as appropriate for your network.
 
