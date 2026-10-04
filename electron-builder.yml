@@ -1,4 +1,4 @@
-appId: com.paperphone.plus.desktop
+appId: com.paperphone.lite.desktop
 productName: PaperPhoneLite
 directories:
   buildResources: build
@@ -17,6 +17,7 @@ publish: null
 
 # Windows
 win:
+  executableName: PaperPhoneLite
   icon: build/icon.ico
   target:
     - target: nsis
@@ -27,6 +28,7 @@ win:
         - x64
 
 nsis:
+  shortcutName: PaperPhoneLite
   oneClick: false
   allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false

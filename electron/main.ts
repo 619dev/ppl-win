@@ -3,6 +3,11 @@ import path from 'path'
 import Store from 'electron-store'
 import { EmbeddedTorManager, type TorState } from './tor-manager'
 
+// Match the installer shortcuts so Windows identifies Lite independently of Plus.
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.paperphone.lite.desktop')
+}
+
 // ── Types ──────────────────────────────────────────────────────
 interface ProxyConfig {
   id: string
