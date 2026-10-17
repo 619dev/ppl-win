@@ -18,7 +18,7 @@ export default function PrivacyPolicy({ onBack }: { onBack?: () => void }) {
           <h2 className="privacy-hero-title">PaperPhoneLite</h2>
           <p className="privacy-hero-subtitle">{zh ? '隐私声明' : 'Privacy Policy'}</p>
         </div>
-        <div className="privacy-updated">{zh ? '生效及更新日期：2026年9月12日' : 'Effective and updated: September 12, 2026'}</div>
+        <div className="privacy-updated">{zh ? '生效及更新日期：2026年10月17日' : 'Effective and updated: October 17, 2026'}</div>
 
         <Section icon={<Eye size={20} />} title={zh ? '1. 适用范围与责任主体' : '1. Scope and Data Controller'}>
           <p>{zh
@@ -43,8 +43,8 @@ export default function PrivacyPolicy({ onBack }: { onBack?: () => void }) {
 
         <Section icon={<Lock size={20} />} title={zh ? '3. 消息加密与限制' : '3. Message Encryption and Limits'}>
           <p>{zh
-            ? '私聊使用 X25519 与 ML-KEM-768 混合密钥协商并以 XSalsa20-Poly1305 加密；加密群聊使用 Sender Key。身份私钥和 Sender Key 保存在本地设备，服务器存储并转发密文。可选的“消息隐私”密码在端到端加密前增加一层本地加密，密码不会上传或自动同步。'
-            : 'Private chats use hybrid X25519 and ML-KEM-768 key agreement with XSalsa20-Poly1305 encryption; encrypted groups use Sender Keys. Identity private keys and Sender Keys stay on local devices while the server stores and relays ciphertext. The optional “message privacy” password adds local encryption before normal end-to-end encryption and is never uploaded or automatically synchronized.'}</p>
+            ? '3.1.1 私聊使用 X25519 密钥协商、XSalsa20-Poly1305 加密与 Ed25519 签名；签名群聊使用 Sender Key 并按成员变化轮换密钥。当前发送路径未启用 ML-KEM。身份私钥和 Sender Key 保存在本地设备，服务器存储并转发密文。可选的“消息隐私”密码在端到端加密前增加一层本地加密，密码不会上传或自动同步。'
+            : 'In 3.1.1, private chats use X25519 key agreement, XSalsa20-Poly1305 encryption, and Ed25519 signatures; signed groups use Sender Keys rotated with membership changes. The current sending path does not enable ML-KEM. Identity private keys and Sender Keys stay on local devices while the server stores and relays ciphertext. The optional “message privacy” password adds local encryption before normal end-to-end encryption and is never uploaded or automatically synchronized.'}</p>
           <p>{zh
             ? '端到端加密不隐藏账号关系、群成员、时间、消息类型、大小和投递状态等运行所需元数据，也不能保护已被控制的设备、截图、收件人保存或转发的内容。安全号码应由通信双方独立核对。'
             : 'End-to-end encryption does not conceal operational metadata such as account relationships, group membership, time, message type, size, or delivery status, and cannot protect a compromised device, screenshots, or content saved or forwarded by a recipient. Participants should independently verify safety numbers.'}</p>
@@ -52,8 +52,8 @@ export default function PrivacyPolicy({ onBack }: { onBack?: () => void }) {
 
         <Section icon={<Server size={20} />} title={zh ? '4. 文件与数据存储' : '4. Files and Data Storage'}>
           <p>{zh
-            ? '上传的图片、视频、语音和文档保存在您选择服务器的持久卷中，由 Rust 服务端传输，单文件上限为 500MB；用户头像和群头像标记为永久文件，普通聊天附件标记为临时文件，实际清理和保留策略由服务端决定。本项目不使用 Cloudflare R2。客户端在本地数据库和缓存中保存登录状态、设置、联系人、群组、消息及媒体缓存；Windows 身份私钥由系统 DPAPI 保护。服务器运营者负责存储位置、备份、访问控制和保留期限。'
-            : 'Uploaded images, video, voice, and documents remain on the selected server’s persistent volume and are transferred by the Rust server, with a 500MB per-file limit. User and group avatars are marked as permanent files, while ordinary chat attachments are marked as temporary; actual cleanup and retention are controlled by the server. The project does not use Cloudflare R2. The client stores login state, settings, contacts, groups, messages, and media in local databases and caches; Windows identity private keys are protected by Windows DPAPI. The server operator is responsible for storage location, backups, access control, and retention.'}</p>
+            ? '上传的图片、视频、语音和文档保存在您选择服务器的持久卷中，由 Rust 服务端传输，单文件上限为 500MB；用户头像和群头像标记为永久文件，普通聊天附件标记为临时文件，实际清理和保留策略由服务端决定。本项目不使用 Cloudflare R2。客户端在本地数据库和缓存中保存登录状态、设置、联系人、群组、消息及媒体缓存；Windows 身份私钥由Windows 系统安全存储保护。服务器运营者负责存储位置、备份、访问控制和保留期限。'
+            : 'Uploaded images, video, voice, and documents remain on the selected server’s persistent volume and are transferred by the Rust server, with a 500MB per-file limit. User and group avatars are marked as permanent files, while ordinary chat attachments are marked as temporary; actual cleanup and retention are controlled by the server. The project does not use Cloudflare R2. The client stores login state, settings, contacts, groups, messages, and media in local databases and caches; Windows identity private keys are protected by Windows system secure storage. The server operator is responsible for storage location, backups, access control, and retention.'}</p>
         </Section>
 
         <Section icon={<Network size={20} />} title={zh ? '5. Tor 网络' : '5. Tor Network'}>

@@ -5,7 +5,7 @@
 
   <p>
     <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows" alt="Platform" />
-    <img src="https://img.shields.io/badge/Version-3.0.21-green?style=flat-square" alt="Version" />
+    <img src="https://img.shields.io/badge/Version-3.1.1-green?style=flat-square" alt="Version" />
     <img src="https://img.shields.io/badge/Electron-36-47848F?style=flat-square&logo=electron" alt="Electron" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React" />
     <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
@@ -15,6 +15,22 @@
 </div>
 
 ---
+
+## 3.1.1 安全更新与兼容性（2026-10-17）
+
+当前 Windows 客户端版本为 **3.1.1**；个人信息页面底部显示 **PaperPhoneLite v3.1.1**，安装包与便携版使用相同版本号。
+
+本次从 Mac 端 `84f577e` 吸收 iOS 至 `c9b22d4` 的共享改动，安全基线为上游 `9bf6aaf`（3.1.0）。保留 Electron 桌面导航、内嵌 Tor/WebTunnel、Windows 系统安全存储密钥保护、IndexedDB 加密消息缓存、桌面通知和附件下载。Bark、APNs、分享扩展及 iOS 原生界面不属于 Windows 功能。
+
+- 在联系人资料中，使用线下约定的强文本外观密码，双方启用并解锁消息隐私后完成身份验证及签名回执。通过独立可信渠道核对安全号码；身份密钥变化后需重新验证，号码一致本身并非绝对安全保证。
+- 签名群聊验证成员身份及密钥分发，随成员变化轮换发送密钥，保留历史密钥时期以恢复离线消息。身份不可信或签名无效时阻止相关操作，不静默降级。
+- 服务端需兼容 PaperPhoneLite 3.1.0 的签名消息、群组及密钥接口，通信端也应匹配；不保证旧版未签名客户端互通。服务器仍可见投递元数据。
+- 私聊实际发送使用 X25519、XSalsa20-Poly1305 和 Ed25519；签名发送未启用 ML-KEM，不能宣称为 Double Ratchet。
+- 离线同步持续分页，等待加密缓存写入完成后才推进账号游标；显示明文与签名校验结果不落盘，恢复后重新验签。
+
+开发环境要求 Node.js 22+ 和 npm。在本 Windows 仓库执行 `npm ci`、`npm run typecheck`、`npm run test:security`、`npm run test:i18n`、`npm run build`。原生开发使用 `npm run dev:electron`；仅浏览器预览无法访问 Windows 系统安全存储。`npm run build:win` 将 Windows x64 安装包和便携版输出至 `release/3.1.1/`。
+
+验证范围：自动测试使用网络和存储适配器；真实服务互通、Windows 安全存储、Tor 运行及 Windows 安装包仍需单独验证。参见[测试说明](tests/README.md)。
 
 ## 📖 简介
 
@@ -35,19 +51,18 @@ PaperPhoneLite Desktop 是 [PaperPhoneLite](https://github.com/619dev/PaperPhone
 
 ### 🔐 端对端加密
 - **E2EE（端对端加密）**：所有消息在发送前加密，服务器无法读取
-- **前向保密（Forward Secrecy）**：基于 Double Ratchet 算法，每条消息使用不同密钥
-- **抗量子加密**：集成 CRYSTALS-Kyber 后量子密钥封装，抵御量子计算攻击
+- **消息认证**：使用 Ed25519 签名绑定发送者、接收者、消息类型及密文；当前实现不提供 Double Ratchet。
+- **实际发送路径**：X25519 + XSalsa20-Poly1305 + Ed25519，签名发送不启用 ML-KEM。
 - **加密库**：libsodium (X25519, XSalsa20-Poly1305, Ed25519)
 
-### 🌐 网络代理
-- 支持 **SOCKS5**、**HTTP**、**HTTPS** 代理协议
-- 系统级透明代理 — 所有 HTTP 和 WebSocket 流量自动走代理
-- 多代理配置管理，一键切换
-- 代理延迟测试
-- 配置持久化，重启自动恢复
+### 🌐 Tor 网络
+- 内嵌 Windows x64 Tor/WebTunnel
+- 自动启动 Tor，完成 bootstrap 后允许登录
+- Electron 的 HTTP 与 WebSocket 通过本地 Tor SOCKS 连接
+- 个人信息页已移除代理入口和子页面，网络由内嵌 Tor 自动管理
 
 ### 🖥️ 桌面特性
-- NSIS 安装包 + 免安装便携版（Windows x64）
+- Windows x64（NSIS 安装包 + 便携版）
 - Telegram 风格桌面横屏布局（左侧边栏 + 右侧主面板）
 - 侧边栏宽度可拖拽调整（280px–480px）
 - 窗口位置 & 大小记忆
@@ -56,7 +71,7 @@ PaperPhoneLite Desktop 是 [PaperPhoneLite](https://github.com/619dev/PaperPhone
 
 ## 🔐 额外加密文本外观：工作原理与安全边界
 
-这项功能是**建立在原有端到端加密（E2EE）之上的额外保险**，不是用文本外观代替 E2EE，也不会绕过或降低原有加密。私聊仍由 X25519 / ML-KEM-768 密钥协商及原有消息加密链路保护；群聊仍使用 Sender Key 协议。身份私钥和群聊 Sender Key 继续由 Windows 系统安全存储保护。
+这项功能是**建立在原有端到端加密（E2EE）之上的额外保险**，不是用文本外观代替 E2EE，也不会绕过或降低原有加密。私聊仍由 X25519 密钥协商、XSalsa20-Poly1305 加密和 Ed25519 消息签名保护；群聊仍使用 Sender Key 协议。身份私钥和群聊 Sender Key 继续由 Windows 系统安全存储保护。
 
 启用后，每条消息按以下顺序处理：
 
@@ -73,18 +88,18 @@ PaperPhoneLite Desktop 是 [PaperPhoneLite](https://github.com/619dev/PaperPhone
 
 ### 从 Release 下载
 
-前往 [Releases](../../releases) 页面下载安装包：
+已发布版本见 [Releases](../../releases)。下表为本地打包 3.1.1 时的预期文件名；更新源码不会发布这些文件：
 
 | 文件 | 说明 |
 |------|------|
-| `PaperPhoneLite-3.0.21-Windows-Setup.exe` | 推荐：NSIS 安装包 |
-| `PaperPhoneLite-3.0.21-Windows-Portable.exe` | 免安装便携版 |
+| `PaperPhoneLite-3.1.1-Windows-Setup.exe` | 推荐：NSIS 安装包 |
+| `PaperPhoneLite-3.1.1-Windows-Portable.exe` | 免安装便携版 |
 
-当前安装包支持 64 位 Windows。首次启动时 Windows Defender 防火墙可能询问是否允许内嵌 Tor 访问网络，请按实际网络环境授权。
+3.1.1 打包面向 Windows x64，提供 NSIS 安装包与免安装便携版。
 
 ## 🧅 内嵌 Tor 与 WebTunnel
 
-Windows 客户端内嵌 Tor Project 官方 Windows x86_64 Tor 与 lyrebird 运行时。应用启动后自动建立 Tor 线路并将 Electron 网络会话切换到本地 SOCKS5；直连 20 秒仍未完成 bootstrap 时，会自动从 Tor Project Moat 获取并校验 WebTunnel bridge，缓存有效 bridge 后重启 Tor。登录按钮只会在 Tor 完成 100% bootstrap 后启用，不会把 `.onion` 请求回退到明网。
+Windows 客户端内嵌 Tor Project 官方 Tor 与 lyrebird 运行时，3.1.1 打包 Windows x64 运行时。应用启动后自动建立 Tor 线路并将 Electron 网络会话切换到本地 SOCKS5；直连 20 秒仍未完成 bootstrap 时，会自动从 Tor Project Moat 获取并校验 WebTunnel bridge，缓存有效 bridge 后重启 Tor。登录按钮只会在 Tor 完成 100% bootstrap 后启用，不会把 `.onion` 请求回退到明网。
 
 WebTunnel 获取失败时会尝试上次成功缓存的 bridge；用户也可在登录页查看实时状态并手动重试。
 
@@ -92,19 +107,18 @@ WebTunnel 获取失败时会尝试上次成功缓存的 bridge；用户也可在
 
 #### 环境要求
 
-- Node.js >= 18
+- Node.js >= 22
 - npm >= 9
 - Windows 系统
 
 #### 步骤
 
 ```bash
-# 克隆新的公共上游仓库；共享前端位于 client/ 目录
-git clone https://github.com/619dev/PaperPhoneLite.git
-cd PaperPhoneLite/client
+# 使用本 Windows 仓库；公共上游前端不包含 Electron 打包配置
+cd /path/to/ppl-win
 
 # 安装依赖
-npm install
+npm ci
 
 # 开发模式（Vite 热重载 + Electron）
 npm run dev:electron
@@ -116,15 +130,9 @@ npm run build
 npm run build:win
 ```
 
-## 🔧 代理配置
+## 🔧 网络使用
 
-1. 打开应用，进入登录页面
-2. 点击代理设置图标
-3. 添加代理节点（支持 SOCKS5 / HTTP / HTTPS）
-4. 填写主机、端口、用户名（可选）、密码（可选）
-5. 激活代理并测试连接
-
-代理通过 Electron 的 `session.setProxy()` API 实现，对所有网络请求（包括 WebSocket）透明生效。
+启动应用后等待 Tor bootstrap 达到 100%。直连超过 20 秒时尝试通过 Moat 获取已校验的 WebTunnel bridge，失败时使用有效缓存；登录页提供重试。Windows 个人信息页与 iOS 一致，已移除代理入口和子页面。
 
 ## 🏗️ 技术架构
 
@@ -144,8 +152,8 @@ npm run build:win
 │       │Login │       │  Chats   │       │
 │       └──────┘       └──────────┘       │
 │  ┌─────────────────────────────────┐   │
-│  │  Crypto (libsodium + Kyber)     │   │
-│  │  Double Ratchet + E2EE          │   │
+│  │  Crypto (libsodium signatures)     │   │
+│  │  Signed private/group E2EE          │   │
 │  └─────────────────────────────────┘   │
 └─────────────────────────────────────────┘
 ```

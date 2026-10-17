@@ -1,5 +1,20 @@
 # Changelog / 更新日志
 
+## 3.1.1 — 2026-10-17
+
+- 统一应用配置、个人信息页面底部、Windows 安装包/便携版及说明文档的当前版本为 `3.1.1`。
+- Align application metadata, the Profile footer, Windows artifacts and current release documentation at `3.1.1`.
+
+- 同步 Mac 端 `84f577e` 的共享 3.1.1 更新：私聊/群聊签名、双向身份验证、身份变化提示、可信群成员检查、密钥轮换及历史密钥恢复。
+- 加密缓存串行写入后再推进同步游标，持久化不包含显示明文和签名校验结果，并隔离账号切换。
+- 移除个人信息页代理入口，更新八语言安全提示、隐私条款、版本及说明文档。
+- 保留 Windows x64 NSIS/便携版配置、Lite/Plus 安装与快捷方式隔离、Windows Tor 路径及 WebTunnel 多桥回退修复。
+- 新增密码学、同步、原生异步缓存及八语言回归测试。Windows 实机与真实服务互通需单独验证。
+
+- Port shared 3.1.1 updates from macOS commit `84f577e`: signed messaging, mutual identity verification, key-change notices, trusted-member checks, rotations and historical key recovery.
+- Persist encrypted caches before sync cursors; exclude display plaintext/signature verdicts and isolate account changes.
+- Update security/localization suites and documentation while preserving Windows packaging, Lite/Plus identity isolation and Tor/WebTunnel fixes.
+
 ## 3.0.21
 
 - Resolved relative avatar paths against the configured messaging server across nested API responses and group-message rendering.
