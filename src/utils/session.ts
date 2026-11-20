@@ -1,3 +1,6 @@
+import { clearKeys } from '../crypto/keystore'
+import { clearAllSenderKeys } from '../crypto/groupCrypto'
+import { clearOfflineCache } from './offlineCache'
 import { useStore } from '../store'
 
 /**
@@ -7,6 +10,11 @@ import { useStore } from '../store'
  */
 export function endSession(reason = 'session_revoked') {
   console.info(`[Session] Explicit logout signal received: ${reason}`)
+  if (reason === 'account_deleted') {
+    clearKeys()
+    clearAllSenderKeys()
+    void clearOfflineCache().catch(console.warn)
+  }
   useStore.getState().logout()
 }
 

@@ -97,6 +97,7 @@ export function connectWs() {
         lastPongAt = Date.now()
         reconnectAttempt = 0
         useStore.getState().setWsConnected(true)
+        window.dispatchEvent(new Event('paperphone:socket-connected'))
         flushOutbox(socket)
         heartbeatTimer = setInterval(() => {
           if (socket.readyState !== WebSocket.OPEN) return

@@ -1,5 +1,24 @@
 # Changelog / 更新日志
 
+## 3.1.7 — 2026-11-21
+
+本版同步 PaperPhoneLite 共享前端 3.1.7（`cb0fe15`）。
+
+- 头像与媒体按账号持久缓存。聊天加密附件缓存保留原始密文，个人信息页可清理离线缓存。
+- 在个人信息 → 账号删除中可选择连续未登录 3、6、12、24 或 36 个月后自动删除，默认 12 个月，成功登录后重新计时。该机制由 PaperPhoneLite 3.1.7 服务端执行。
+- 已启用双重验证的账号可在登录页使用认证器验证码重置密码。服务端会撤销旧设备会话。
+- Lite 继续提供 Tor 私聊与群聊，无朋友圈和时间线。
+
+This release ports the shared PaperPhoneLite 3.1.7 frontend (`cb0fe15`).
+
+- Avatars and media are cached persistently per account. Encrypted chat attachments are cached as ciphertext. Clear offline data in Profile.
+- In Profile → Account Deletion, choose 3, 6, 12, 24, or 36 months of inactivity. The default is 12 months, and a successful sign-in restarts the countdown. The PaperPhoneLite 3.1.7 server performs account deletion.
+- Accounts with two-factor authentication enabled can reset their password from the sign-in screen using an authenticator code. The server revokes existing device sessions after a reset.
+- Lite continues to offer private and group chat over Tor, with no social feed or timeline.
+
+- 个人信息页底部、Windows x64 安装包与便携版版本统一为 3.1.7。
+- The Profile footer, Windows x64 installer, and portable build all display 3.1.7.
+
 ## 3.1.5 — 2026-11-14
 
 本版同步macOS 端 3.1.5（`3d3107b`）的共享更新。

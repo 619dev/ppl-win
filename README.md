@@ -6,7 +6,7 @@
 
   <p>
     <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows" alt="Platform" />
-    <img src="https://img.shields.io/badge/Version-3.1.5-green?style=flat-square" alt="Version" />
+    <img src="https://img.shields.io/badge/Version-3.1.7-green?style=flat-square" alt="Version" />
     <img src="https://img.shields.io/badge/Electron-36-47848F?style=flat-square&logo=electron" alt="Electron" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React" />
     <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
@@ -17,27 +17,29 @@
 
 ---
 
-## 3.1.5 更新与兼容性（2026-11-14）
+## 3.1.7 更新与兼容性（2026-11-21）
 
-本版同步 macOS 端 3.1.5（`3d3107b`）的共享更新。
+本版同步 PaperPhoneLite 共享前端 3.1.7（`cb0fe15`）。
 
-- 好友关系变更后在线刷新好友列表和请求，重连时同步好友列表。升级到对应的 3.1.5 服务端后，服务端启动时会补齐历史单向好友关系。
-- 新群消息使用 Ed25519 签名和 Sender Key 加密，按成员变化轮换密钥。群密钥分发和签名验证使用服务端公布的身份公钥，无需逐个完成私聊的线下验证。建议群成员一并升级。
-- 新消息的额外文本外观加密仅用于私聊。使用过该功能的历史群消息仍可用原密码解密。私聊继续支持线下约定密码的双向身份验证及安全号码核对。
+- 头像与媒体按账号持久缓存。聊天加密附件缓存保留原始密文，个人信息页可清理离线缓存。
+- 在个人信息 → 账号删除中可选择连续未登录 3、6、12、24 或 36 个月后自动删除，默认 12 个月，成功登录后重新计时。该机制由 PaperPhoneLite 3.1.7 服务端执行。
+- 已启用双重验证的账号可在登录页使用认证器验证码重置密码。服务端会撤销旧设备会话。
+- Lite 继续提供 Tor 私聊与群聊，无朋友圈和时间线。
 
-开发环境要求 Node.js 22+ 和 npm。在本 Windows 仓库执行 `npm ci`、`npm run typecheck`、`npm run test:security`、`npm run test:i18n`、`npm run build`。原生开发使用 `npm run dev:electron`；仅浏览器预览无法访问 Windows 系统安全存储。`npm run build:win` 将 Windows x64 安装包和便携版输出至 `release/3.1.5/`。
+开发环境要求 Node.js 22+ 和 npm。在本 Windows 仓库执行 `npm ci`、`npm run typecheck`、`npm run test:security`、`npm run test:i18n`、`npm run build`。原生开发使用 `npm run dev:electron`；仅浏览器预览无法访问 Windows 系统安全存储。`npm run build:win` 将 Windows x64 安装包和便携版输出至 `release/3.1.7/`。
 
 验证范围：自动测试使用网络和存储适配器；真实服务互通、Windows 安全存储、Tor 运行及 Windows 安装包仍需单独验证。参见[测试说明](tests/README.md)。
 
-## 3.1.5 changes and compatibility (2026-11-14)
+## 3.1.7 changes and compatibility (2026-11-21)
 
-This release ports the shared macOS 3.1.5 changes (`3d3107b`).
+This release ports the shared PaperPhoneLite 3.1.7 frontend (`cb0fe15`).
 
-- Refresh the friend list and requests after friendship changes, and refresh the list on reconnect. The corresponding 3.1.5 server repairs historical one-sided friendships at startup.
-- New group messages use Ed25519 signatures and Sender Key encryption, with key rotation on membership changes. Group key distribution and signature verification use server-published identity keys and work without private offline verification of every member. Group members should upgrade together.
-- The extra text-appearance encryption layer applies to new private messages. Older group messages protected by that layer remain readable with their original password. Private chats still support mutual offline-password verification and safety-number checks.
+- Avatars and media are cached persistently per account. Encrypted chat attachments are cached as ciphertext. Clear offline data in Profile.
+- In Profile → Account Deletion, choose 3, 6, 12, 24, or 36 months of inactivity. The default is 12 months, and a successful sign-in restarts the countdown. The PaperPhoneLite 3.1.7 server performs account deletion.
+- Accounts with two-factor authentication enabled can reset their password from the sign-in screen using an authenticator code. The server revokes existing device sessions after a reset.
+- Lite continues to offer private and group chat over Tor, with no social feed or timeline.
 
-Development requires Node.js 22+ and npm. From this Windows repository run `npm ci`, `npm run typecheck`, `npm run test:security`, `npm run test:i18n`, and `npm run build`. Use `npm run dev:electron` for the native bridge; browser-only preview cannot access Windows secure storage. `npm run build:win` packages Windows x64 NSIS and portable executables under `release/3.1.5/`.
+Development requires Node.js 22+ and npm. From this Windows repository run `npm ci`, `npm run typecheck`, `npm run test:security`, `npm run test:i18n`, and `npm run build`. Use `npm run dev:electron` for the native bridge; browser-only preview cannot access Windows secure storage. `npm run build:win` packages Windows x64 NSIS and portable executables under `release/3.1.7/`.
 
 Validation scope: automated crypto/sync/localization tests use network and storage adapters. Live interoperability, Windows secure storage, Tor runtime and Windows installer checks require separate validation. See [test notes](tests/README.md).
 
