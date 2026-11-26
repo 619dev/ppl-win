@@ -212,7 +212,7 @@ export class EmbeddedTorManager {
         headers: {
           'content-type': 'application/vnd.api+json',
           accept: 'application/json',
-          'user-agent': `PaperPhoneLite/3.1.7 (${process.platform === 'win32' ? 'Windows' : 'macOS'})`,
+          'user-agent': `PaperPhoneLite/3.1.8 (${process.platform === 'win32' ? 'Windows' : 'macOS'})`,
         },
         body: JSON.stringify({ country: 'cn', transports: ['webtunnel'] }),
         signal: controller.signal,

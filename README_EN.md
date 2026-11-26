@@ -5,7 +5,7 @@
 
   <p>
     <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows" alt="Platform" />
-    <img src="https://img.shields.io/badge/Version-3.1.7-green?style=flat-square" alt="Version" />
+    <img src="https://img.shields.io/badge/Version-3.1.8-green?style=flat-square" alt="Version" />
     <img src="https://img.shields.io/badge/Electron-36-47848F?style=flat-square&logo=electron" alt="Electron" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React" />
     <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
@@ -16,16 +16,17 @@
 
 ---
 
-## 3.1.7 changes and compatibility (2026-11-21)
+## 3.1.8 changes and compatibility (2026-11-26)
 
-This release ports the shared PaperPhoneLite 3.1.7 frontend (`cb0fe15`).
+This release ports the shared PaperPhoneLite 3.1.8 frontend (`db9fb80`).
 
-- Avatars and media are cached persistently per account. Encrypted chat attachments are cached as ciphertext. Clear offline data in Profile.
+- Chat controls, identity verification badges, group message status, QR scanning, and language selection use Lucide icons. Chat supports emoji, recent emoji, and stickers.
+- Group messages awaiting keys show a pending status. Verification failures show a warning icon.
 - In Profile → Account Deletion, choose 3, 6, 12, 24, or 36 months of inactivity. The default is 12 months, and a successful sign-in restarts the countdown. The PaperPhoneLite 3.1.7 server performs account deletion.
 - Accounts with two-factor authentication enabled can reset their password from the sign-in screen using an authenticator code. The server revokes existing device sessions after a reset.
 - Lite continues to offer private and group chat over Tor, with no social feed or timeline.
 
-Development requires Node.js 22+ and npm. From this Windows repository run `npm ci`, `npm run typecheck`, `npm run test:security`, `npm run test:i18n`, and `npm run build`. Use `npm run dev:electron` for the native bridge; browser-only preview cannot access Windows secure storage. `npm run build:win` packages Windows x64 NSIS and portable executables under `release/3.1.7/`.
+Development requires Node.js 22+ and npm. From this Windows repository run `npm ci`, `npm run typecheck`, `npm run test:security`, `npm run test:i18n`, and `npm run build`. Use `npm run dev:electron` for the native bridge; browser-only preview cannot access Windows secure storage. `npm run build:win` packages Windows x64 NSIS and portable executables under `release/3.1.8/`.
 
 Validation scope: automated crypto/sync/localization tests use network and storage adapters. Live interoperability, Windows secure storage, Tor runtime and Windows installer checks require separate validation. See [test notes](tests/README.md).
 
@@ -85,14 +86,14 @@ The app does not persist the extra password. While unlocked it exists only in th
 
 ### Download from Releases
 
-Published installers are available on the [Releases](../../releases) page. The following are the expected filenames when packaging 3.1.7 locally:
+Published installers are available on the [Releases](../../releases) page. The following are the expected filenames when packaging 3.1.8 locally:
 
 | File | Description |
 |------|-------------|
-| `PaperPhoneLite-3.1.7-Windows-Setup.exe` | NSIS installer |
-| `PaperPhoneLite-3.1.7-Windows-Portable.exe` | Portable executable |
+| `PaperPhoneLite-3.1.8-Windows-Setup.exe` | NSIS installer |
+| `PaperPhoneLite-3.1.8-Windows-Portable.exe` | Portable executable |
 
-The 3.1.7 packaging configuration targets Windows x64 with NSIS and portable executables.
+The 3.1.8 packaging configuration targets Windows x64 with NSIS and portable executables.
 
 ## 🧅 Embedded Tor and WebTunnel
 

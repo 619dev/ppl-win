@@ -6,7 +6,7 @@
 
   <p>
     <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows" alt="Platform" />
-    <img src="https://img.shields.io/badge/Version-3.1.7-green?style=flat-square" alt="Version" />
+    <img src="https://img.shields.io/badge/Version-3.1.8-green?style=flat-square" alt="Version" />
     <img src="https://img.shields.io/badge/Electron-36-47848F?style=flat-square&logo=electron" alt="Electron" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React" />
     <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
@@ -17,29 +17,31 @@
 
 ---
 
-## 3.1.7 更新与兼容性（2026-11-21）
+## 3.1.8 更新与兼容性（2026-11-26）
 
-本版同步 PaperPhoneLite 共享前端 3.1.7（`cb0fe15`）。
+本版同步 PaperPhoneLite 共享前端 3.1.8（`db9fb80`）。
 
-- 头像与媒体按账号持久缓存。聊天加密附件缓存保留原始密文，个人信息页可清理离线缓存。
+- 聊天控件、身份验证标记、群消息状态、二维码扫描和语言选择采用 Lucide 图标。聊天支持表情、最近使用的表情及贴纸。
+- 群消息缺少密钥时显示等待状态，验证失败时显示警告图标。
 - 在个人信息 → 账号删除中可选择连续未登录 3、6、12、24 或 36 个月后自动删除，默认 12 个月，成功登录后重新计时。该机制由 PaperPhoneLite 3.1.7 服务端执行。
 - 已启用双重验证的账号可在登录页使用认证器验证码重置密码。服务端会撤销旧设备会话。
 - Lite 继续提供 Tor 私聊与群聊，无朋友圈和时间线。
 
-开发环境要求 Node.js 22+ 和 npm。在本 Windows 仓库执行 `npm ci`、`npm run typecheck`、`npm run test:security`、`npm run test:i18n`、`npm run build`。原生开发使用 `npm run dev:electron`；仅浏览器预览无法访问 Windows 系统安全存储。`npm run build:win` 将 Windows x64 安装包和便携版输出至 `release/3.1.7/`。
+开发环境要求 Node.js 22+ 和 npm。在本 Windows 仓库执行 `npm ci`、`npm run typecheck`、`npm run test:security`、`npm run test:i18n`、`npm run build`。原生开发使用 `npm run dev:electron`；仅浏览器预览无法访问 Windows 系统安全存储。`npm run build:win` 将 Windows x64 安装包和便携版输出至 `release/3.1.8/`。
 
 验证范围：自动测试使用网络和存储适配器；真实服务互通、Windows 安全存储、Tor 运行及 Windows 安装包仍需单独验证。参见[测试说明](tests/README.md)。
 
-## 3.1.7 changes and compatibility (2026-11-21)
+## 3.1.8 changes and compatibility (2026-11-26)
 
-This release ports the shared PaperPhoneLite 3.1.7 frontend (`cb0fe15`).
+This release ports the shared PaperPhoneLite 3.1.8 frontend (`db9fb80`).
 
-- Avatars and media are cached persistently per account. Encrypted chat attachments are cached as ciphertext. Clear offline data in Profile.
+- Chat controls, identity verification badges, group message status, QR scanning, and language selection use Lucide icons. Chat supports emoji, recent emoji, and stickers.
+- Group messages awaiting keys show a pending status. Verification failures show a warning icon.
 - In Profile → Account Deletion, choose 3, 6, 12, 24, or 36 months of inactivity. The default is 12 months, and a successful sign-in restarts the countdown. The PaperPhoneLite 3.1.7 server performs account deletion.
 - Accounts with two-factor authentication enabled can reset their password from the sign-in screen using an authenticator code. The server revokes existing device sessions after a reset.
 - Lite continues to offer private and group chat over Tor, with no social feed or timeline.
 
-Development requires Node.js 22+ and npm. From this Windows repository run `npm ci`, `npm run typecheck`, `npm run test:security`, `npm run test:i18n`, and `npm run build`. Use `npm run dev:electron` for the native bridge; browser-only preview cannot access Windows secure storage. `npm run build:win` packages Windows x64 NSIS and portable executables under `release/3.1.7/`.
+Development requires Node.js 22+ and npm. From this Windows repository run `npm ci`, `npm run typecheck`, `npm run test:security`, `npm run test:i18n`, and `npm run build`. Use `npm run dev:electron` for the native bridge; browser-only preview cannot access Windows secure storage. `npm run build:win` packages Windows x64 NSIS and portable executables under `release/3.1.8/`.
 
 Validation scope: automated crypto/sync/localization tests use network and storage adapters. Live interoperability, Windows secure storage, Tor runtime and Windows installer checks require separate validation. See [test notes](tests/README.md).
 

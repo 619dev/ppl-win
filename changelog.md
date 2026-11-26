@@ -1,5 +1,20 @@
 # Changelog / 更新日志
 
+## 3.1.8 — 2026-11-26
+
+本版同步 PaperPhoneLite 共享前端 3.1.8（`db9fb80`）。
+
+- 聊天控件、身份验证标记、群消息状态、二维码扫描和语言选择采用 Lucide 图标。聊天支持表情、最近使用的表情及贴纸。
+- 群消息缺少密钥时显示等待状态，验证失败时显示警告图标。
+
+This release ports the shared PaperPhoneLite 3.1.8 frontend (`db9fb80`).
+
+- Chat controls, identity verification badges, group message status, QR scanning, and language selection use Lucide icons. Chat supports emoji, recent emoji, and stickers.
+- Group messages awaiting keys show a pending status. Verification failures show a warning icon.
+
+- 个人信息页底部、Windows x64 安装包与便携版版本统一为 3.1.8。
+- The Profile footer, Windows x64 installer, and portable build all display 3.1.8.
+
 ## 3.1.7 — 2026-11-21
 
 本版同步 PaperPhoneLite 共享前端 3.1.7（`cb0fe15`）。

@@ -5,7 +5,7 @@
 
   <p>
     <img src="https://img.shields.io/badge/Platform-Windows-0078D6?style=flat-square&logo=windows" alt="Platform" />
-    <img src="https://img.shields.io/badge/Version-3.1.7-green?style=flat-square" alt="Version" />
+    <img src="https://img.shields.io/badge/Version-3.1.8-green?style=flat-square" alt="Version" />
     <img src="https://img.shields.io/badge/Electron-36-47848F?style=flat-square&logo=electron" alt="Electron" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react" alt="React" />
     <img src="https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
@@ -16,16 +16,17 @@
 
 ---
 
-## 3.1.7 更新与兼容性（2026-11-21）
+## 3.1.8 更新与兼容性（2026-11-26）
 
-本版同步 PaperPhoneLite 共享前端 3.1.7（`cb0fe15`）。
+本版同步 PaperPhoneLite 共享前端 3.1.8（`db9fb80`）。
 
-- 头像与媒体按账号持久缓存。聊天加密附件缓存保留原始密文，个人信息页可清理离线缓存。
+- 聊天控件、身份验证标记、群消息状态、二维码扫描和语言选择采用 Lucide 图标。聊天支持表情、最近使用的表情及贴纸。
+- 群消息缺少密钥时显示等待状态，验证失败时显示警告图标。
 - 在个人信息 → 账号删除中可选择连续未登录 3、6、12、24 或 36 个月后自动删除，默认 12 个月，成功登录后重新计时。该机制由 PaperPhoneLite 3.1.7 服务端执行。
 - 已启用双重验证的账号可在登录页使用认证器验证码重置密码。服务端会撤销旧设备会话。
 - Lite 继续提供 Tor 私聊与群聊，无朋友圈和时间线。
 
-开发环境要求 Node.js 22+ 和 npm。在本 Windows 仓库执行 `npm ci`、`npm run typecheck`、`npm run test:security`、`npm run test:i18n`、`npm run build`。原生开发使用 `npm run dev:electron`；仅浏览器预览无法访问 Windows 系统安全存储。`npm run build:win` 将 Windows x64 安装包和便携版输出至 `release/3.1.7/`。
+开发环境要求 Node.js 22+ 和 npm。在本 Windows 仓库执行 `npm ci`、`npm run typecheck`、`npm run test:security`、`npm run test:i18n`、`npm run build`。原生开发使用 `npm run dev:electron`；仅浏览器预览无法访问 Windows 系统安全存储。`npm run build:win` 将 Windows x64 安装包和便携版输出至 `release/3.1.8/`。
 
 验证范围：自动测试使用网络和存储适配器；真实服务互通、Windows 安全存储、Tor 运行及 Windows 安装包仍需单独验证。参见[测试说明](tests/README.md)。
 
@@ -85,18 +86,18 @@ PaperPhoneLite Desktop 是 [PaperPhoneLite](https://github.com/619dev/PaperPhone
 
 ### 从 Release 下载
 
-已发布版本见 [Releases](../../releases)。下表为本地打包 3.1.7 时的预期文件名：
+已发布版本见 [Releases](../../releases)。下表为本地打包 3.1.8 时的预期文件名：
 
 | 文件 | 说明 |
 |------|------|
-| `PaperPhoneLite-3.1.7-Windows-Setup.exe` | 推荐：NSIS 安装包 |
-| `PaperPhoneLite-3.1.7-Windows-Portable.exe` | 免安装便携版 |
+| `PaperPhoneLite-3.1.8-Windows-Setup.exe` | 推荐：NSIS 安装包 |
+| `PaperPhoneLite-3.1.8-Windows-Portable.exe` | 免安装便携版 |
 
-3.1.7 打包面向 Windows x64，提供 NSIS 安装包与免安装便携版。
+3.1.8 打包面向 Windows x64，提供 NSIS 安装包与免安装便携版。
 
 ## 🧅 内嵌 Tor 与 WebTunnel
 
-Windows 客户端内嵌 Tor Project 官方 Tor 与 lyrebird 运行时，3.1.7 打包 Windows x64 运行时。应用启动后自动建立 Tor 线路并将 Electron 网络会话切换到本地 SOCKS5；直连 20 秒仍未完成 bootstrap 时，会自动从 Tor Project Moat 获取并校验 WebTunnel bridge，缓存有效 bridge 后重启 Tor。登录按钮只会在 Tor 完成 100% bootstrap 后启用，不会把 `.onion` 请求回退到明网。
+Windows 客户端内嵌 Tor Project 官方 Tor 与 lyrebird 运行时，3.1.8 打包 Windows x64 运行时。应用启动后自动建立 Tor 线路并将 Electron 网络会话切换到本地 SOCKS5；直连 20 秒仍未完成 bootstrap 时，会自动从 Tor Project Moat 获取并校验 WebTunnel bridge，缓存有效 bridge 后重启 Tor。登录按钮只会在 Tor 完成 100% bootstrap 后启用，不会把 `.onion` 请求回退到明网。
 
 WebTunnel 获取失败时会尝试上次成功缓存的 bridge；用户也可在登录页查看实时状态并手动重试。
 
